@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { FirestoreClient } from './firestore-client';
+import { FirestoreClientModule } from 'src/firestore-client/firestore-client.module';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 
 @Module({
   controllers: [MoviesController],
-  providers: [MoviesService, FirestoreClient]
+  providers: [MoviesService],
+  imports: [FirestoreClientModule]
 })
 export class MoviesModule {}

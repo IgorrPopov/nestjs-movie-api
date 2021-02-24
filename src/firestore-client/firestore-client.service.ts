@@ -6,12 +6,15 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import * as path from 'path';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
-import { Movie } from './entities/movie.entity';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { User } from 'src/users/entities/user.entity';
+import { CreateMovieDto } from '../movies/dto/create-movie.dto';
+import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
+import { Movie } from '../movies/entities/movie.entity';
 
 @Injectable()
-export class FirestoreClient {
+export class FirestoreClientService {
   private readonly firestore: Firestore;
 
   constructor() {
@@ -26,32 +29,32 @@ export class FirestoreClient {
     });
   }
 
-  public async save(
+  public async create(
     collection: string,
-    createMovieDto: CreateMovieDto
+    createDto: CreateMovieDto | CreateUserDto
   ): Promise<void> {
     const docRef = this.firestore.collection(collection);
-    await docRef.add({ ...createMovieDto });
+    await docRef.add({ ...createDto });
   }
 
   public async update(
     collection: string,
     id: string,
-    updateMovieDto: UpdateMovieDto
+    updateDto: UpdateMovieDto | UpdateUserDto
   ): Promise<void> {
-    if (!updateMovieDto || JSON.stringify(updateMovieDto) === '{}') {
+    if (!updateDto || JSON.stringify(updateDto) === '{}') {
       throw new BadRequestException('update request is empty');
     }
 
     const docRef = this.firestore.collection(collection).doc(id);
 
     try {
-      await docRef.update({ ...updateMovieDto });
+      await docRef.update({ ...updateDto });
     } catch (error) {
       if (error.code === 5) {
         // No document to update
         throw new BadRequestException(
-          `There is no movie to update with id: ${id}`
+          `There is no document to update with id: ${id}`
         );
       }
 
@@ -70,7 +73,7 @@ export class FirestoreClient {
     return { id: doc.id, ...doc.data() };
   }
 
-  public async findAll(collection: string): Promise<Movie[]> {
+  public async findAll(collection: string): Promise<Movie[] | User[]> {
     const snapshot = await this.firestore.collection(collection).get();
 
     const result: Movie[] = [];
@@ -85,7 +88,6 @@ export class FirestoreClient {
   }
 
   public async remove(collection: string, id: string): Promise<void> {
-    await this.firestore.collection(collection).doc(id)
-.delete();
+    await this.firestore.collection(collection).doc(id).delete();
   }
 }

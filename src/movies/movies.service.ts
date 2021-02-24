@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { FirestoreClientService } from 'src/firestore-client/firestore-client.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entities/movie.entity';
-import { FirestoreClient } from './firestore-client';
 
 @Injectable()
 export class MoviesService {
-  constructor(private readonly firestoreClient: FirestoreClient) {}
+  constructor(private readonly firestoreClient: FirestoreClientService) {}
 
   create(createMovieDto: CreateMovieDto): Promise<void> {
-    return this.firestoreClient.save('movies', createMovieDto);
+    return this.firestoreClient.create('movies', createMovieDto);
   }
 
   update(id: string, updateMovieDto: UpdateMovieDto): Promise<void> {
