@@ -1,6 +1,11 @@
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class UpdateUserDto {
+export class FindUsersDto {
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  readonly id: string;
+
   @IsOptional()
   @IsNotEmpty()
   @IsString()

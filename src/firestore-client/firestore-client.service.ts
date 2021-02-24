@@ -1,13 +1,19 @@
-import { Firestore, QueryDocumentSnapshot } from '@google-cloud/firestore';
+import {
+  DocumentData,
+  Firestore,
+  Query,
+  QueryDocumentSnapshot,
+} from '@google-cloud/firestore';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import * as path from 'path';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { FindUsersDto } from 'src/users/dto/find-users.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
@@ -21,29 +27,34 @@ export class FirestoreClientService {
   constructor() {
     this.firestore = new Firestore({
       projectId: 'nestjs-cloud-function-app',
-      keyFilename: path.join(
-        __dirname,
-        '..',
-        '..',
-        'service-account.json'
-      )
+      keyFilename: path.join(__dirname, '..', '..', 'service-account.json'),
     });
   }
 
-  public async create(
+  async create(
     collection: string,
-    createDto: CreateMovieDto | CreateUserDto
+    createDto: CreateMovieDto | CreateUserDto,
   ): Promise<void> {
     const docRef = this.firestore.collection(collection);
     await docRef.add({ ...createDto });
   }
 
-  public async update(
+  async batch(collection: string, createUserDtos: CreateUserDto[]) {
+    const batch = this.firestore.batch();
+
+    createUserDtos.forEach((dto) =>
+      this.firestore.collection(collection).add({ ...dto }),
+    );
+
+    await batch.commit();
+  }
+
+  async update(
     collection: string,
     id: string,
-    updateDto: UpdateMovieDto | UpdateUserDto
+    updateDto: UpdateMovieDto | UpdateUserDto,
   ): Promise<void> {
-    if (!updateDto || JSON.stringify(updateDto) === '{}') {
+    if (!updateDto || !Object.keys(updateDto)) {
       throw new BadRequestException('update request is empty');
     }
 
@@ -55,7 +66,7 @@ export class FirestoreClientService {
       if (error.code === 5) {
         // No document to update
         throw new BadRequestException(
-          `There is no document to update with id: ${id}`
+          `There is no document to update with id: ${id}`,
         );
       }
 
@@ -63,7 +74,26 @@ export class FirestoreClientService {
     }
   }
 
-  public async findOne(collection: string, id: string): Promise<Movie> {
+  async find(collection: string, findUsersDto: FindUsersDto) {
+    let query: Query<DocumentData> = this.firestore.collection(collection);
+
+    Object.entries(findUsersDto).forEach(([key, value]) => {
+      query = query.where(key, '==', value);
+    });
+
+    const snapshot = await query.get();
+
+    const result: Array<Movie | User> = [];
+
+    snapshot.forEach((doc: QueryDocumentSnapshot) => {
+      const movie: Movie | User = { id: doc.id, ...doc.data() };
+      result.push(movie);
+    });
+
+    return result;
+  }
+
+  async findOne(collection: string, id: string): Promise<any> {
     const docRef = this.firestore.collection(collection).doc(id);
     const doc = await docRef.get();
 
@@ -74,29 +104,30 @@ export class FirestoreClientService {
     return { id: doc.id, ...doc.data() };
   }
 
-  public async findAll(collection: string, paginationDto: PaginationDto): Promise<Movie[]> {
-    
+  async findAll(
+    collection: string,
+    paginationDto: PaginationDto,
+  ): Promise<any> {
     const { start = 5, limit = 1 } = paginationDto;
-    
+
     const snapshot = await this.firestore
       .collection(collection)
-      .orderBy('year')
-      .startAt(start)
-      .limit(limit)
+      // .orderBy('year')
+      // .startAt(start)
+      // .limit(limit)
       .get();
 
-    const result: Movie[] = [];
+    const result: Array<Movie | User> = [];
 
     snapshot.forEach((doc: QueryDocumentSnapshot) => {
-
-      const movie: Movie = { id: doc.id, ...doc.data() };
+      const movie: Movie | User = { id: doc.id, ...doc.data() };
       result.push(movie);
     });
 
     return result;
   }
 
-  public async remove(collection: string, id: string): Promise<void> {
+  async remove(collection: string, id: string): Promise<void> {
     await this.firestore.collection(collection).doc(id).delete();
   }
 }
