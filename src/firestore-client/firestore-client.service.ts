@@ -6,6 +6,7 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import * as path from 'path';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { User } from 'src/users/entities/user.entity';
@@ -73,8 +74,16 @@ export class FirestoreClientService {
     return { id: doc.id, ...doc.data() };
   }
 
-  public async findAll(collection: string): Promise<Movie[] | User[]> {
-    const snapshot = await this.firestore.collection(collection).get();
+  public async findAll(collection: string, paginationDto: PaginationDto): Promise<Movie[]> {
+    
+    const { start = 5, limit = 1 } = paginationDto;
+    
+    const snapshot = await this.firestore
+      .collection(collection)
+      .orderBy('year')
+      .startAt(start)
+      .limit(limit)
+      .get();
 
     const result: Movie[] = [];
 

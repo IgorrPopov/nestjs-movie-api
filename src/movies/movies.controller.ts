@@ -5,9 +5,12 @@ import {
   Get,
   Param,
   Patch,
-  Post
+  Post,
+  ValidationPipe,
+  Query
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entities/movie.entity';
@@ -83,8 +86,8 @@ export class MoviesController {
       or an empty array if there are no movies`,
     type: [Movie]
   })
-  findAll(): Promise<Movie[]> {
-    return this.moviesService.findAll();
+  findAll(@Query() paginationDto: PaginationDto): Promise<Movie[]> {
+    return this.moviesService.findAll(paginationDto);
   }
 
   @Delete(':id')

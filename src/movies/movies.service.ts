@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { FirestoreClientService } from 'src/firestore-client/firestore-client.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -20,8 +21,8 @@ export class MoviesService {
     return this.firestoreClient.findOne('movies', id);
   }
 
-  findAll(): Promise<Movie[]> {
-    return this.firestoreClient.findAll('movies');
+  findAll(paginationDto: PaginationDto): Promise<Movie[]> {
+    return this.firestoreClient.findAll('movies', paginationDto);
   }
 
   remove(id: string): Promise<void> {
