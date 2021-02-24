@@ -39,7 +39,10 @@ export class FirestoreClientService {
     await docRef.add({ ...createDto });
   }
 
-  async batch(collection: string, createUserDtos: CreateUserDto[]) {
+  async batch(
+    collection: string,
+    createUserDtos: CreateUserDto[],
+  ): Promise<void> {
     const batch = this.firestore.batch();
 
     createUserDtos.forEach((dto) =>
@@ -108,12 +111,12 @@ export class FirestoreClientService {
     collection: string,
     paginationDto: PaginationDto,
   ): Promise<any> {
-    const { start = 5, limit = 1 } = paginationDto;
+    // const { start = 5, limit = 10 } = paginationDto;
 
     const snapshot = await this.firestore
       .collection(collection)
       // .orderBy('year')
-      // .startAt(start)
+      // .startAt(1980)
       // .limit(limit)
       .get();
 

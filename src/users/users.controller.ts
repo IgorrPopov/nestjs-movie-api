@@ -29,7 +29,7 @@ export class UsersController {
   batch(
     @Body(new ParseArrayPipe({ items: CreateUserDto }))
     createUserDtos: CreateUserDto[],
-  ) {
+  ): Promise<void> {
     return this.usersService.batch(createUserDtos);
   }
 

@@ -16,7 +16,7 @@ export class UsersService {
     return this.firestoreClientService.create('users', createUserDto);
   }
 
-  batch(createUserDtos: CreateUserDto[]) {
+  batch(createUserDtos: CreateUserDto[]): Promise<void> {
     return this.firestoreClientService.batch('users', createUserDtos);
   }
 
