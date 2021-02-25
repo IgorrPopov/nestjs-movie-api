@@ -7,7 +7,6 @@ import {
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import * as path from 'path';
@@ -19,6 +18,7 @@ import { User } from 'src/users/entities/user.entity';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
 import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
 import { Movie } from '../movies/entities/movie.entity';
+import { projectId, serviceAccountJsonFileName } from './config/firestore-client.config';
 
 @Injectable()
 export class FirestoreClientService {
@@ -26,8 +26,8 @@ export class FirestoreClientService {
 
   constructor() {
     this.firestore = new Firestore({
-      projectId: 'nestjs-cloud-function-app',
-      keyFilename: path.join(__dirname, '..', '..', 'service-account.json'),
+      projectId,
+      keyFilename: path.join(__dirname, '..', '..', serviceAccountJsonFileName),
     });
   }
 
@@ -37,19 +37,6 @@ export class FirestoreClientService {
   ): Promise<void> {
     const docRef = this.firestore.collection(collection);
     await docRef.add({ ...createDto });
-  }
-
-  async batch(
-    collection: string,
-    createUserDtos: CreateUserDto[],
-  ): Promise<void> {
-    const batch = this.firestore.batch();
-
-    createUserDtos.forEach((dto) =>
-      this.firestore.collection(collection).add({ ...dto }),
-    );
-
-    await batch.commit();
   }
 
   async update(
@@ -68,32 +55,11 @@ export class FirestoreClientService {
     } catch (error) {
       if (error.code === 5) {
         // No document to update
-        throw new BadRequestException(
-          `There is no document to update with id: ${id}`,
+        throw new NotFoundException(
+          `there is no document to update with id: ${id}`
         );
       }
-
-      throw new InternalServerErrorException();
     }
-  }
-
-  async find(collection: string, findUsersDto: FindUsersDto) {
-    let query: Query<DocumentData> = this.firestore.collection(collection);
-
-    Object.entries(findUsersDto).forEach(([key, value]) => {
-      query = query.where(key, '==', value);
-    });
-
-    const snapshot = await query.get();
-
-    const result: Array<Movie | User> = [];
-
-    snapshot.forEach((doc: QueryDocumentSnapshot) => {
-      const movie: Movie | User = { id: doc.id, ...doc.data() };
-      result.push(movie);
-    });
-
-    return result;
   }
 
   async findOne(collection: string, id: string): Promise<any> {
@@ -101,7 +67,9 @@ export class FirestoreClientService {
     const doc = await docRef.get();
 
     if (!doc.exists) {
-      throw new NotFoundException();
+      throw new NotFoundException(
+        `there is no document with id: ${id}`
+      );
     }
 
     return { id: doc.id, ...doc.data() };
@@ -110,8 +78,8 @@ export class FirestoreClientService {
   async findAll(
     collection: string,
     paginationDto: PaginationDto,
-  ): Promise<any> {
-    // const { start = 5, limit = 10 } = paginationDto;
+  ): Promise<any[]> {
+    const { start = 5, limit = 10 } = paginationDto;
 
     const snapshot = await this.firestore
       .collection(collection)
@@ -123,8 +91,8 @@ export class FirestoreClientService {
     const result: Array<Movie | User> = [];
 
     snapshot.forEach((doc: QueryDocumentSnapshot) => {
-      const movie: Movie | User = { id: doc.id, ...doc.data() };
-      result.push(movie);
+      const document: Movie | User = { id: doc.id, ...doc.data() };
+      result.push(document);
     });
 
     return result;
@@ -132,5 +100,43 @@ export class FirestoreClientService {
 
   async remove(collection: string, id: string): Promise<void> {
     await this.firestore.collection(collection).doc(id).delete();
+  }
+
+  // logic just for users endpoints
+  async batch(
+    collection: string,
+    createUserDtos: CreateUserDto[],
+  ): Promise<void> {
+    const batch = this.firestore.batch();
+
+    createUserDtos.forEach((createUserDto) =>
+      this.firestore.collection(collection).add({ ...createUserDto }),
+    );
+
+    await batch.commit();
+  }
+
+  async find(collection: string, findUsersDto: FindUsersDto): Promise<User[]> {
+
+    if (findUsersDto.id) {
+      return this.findOne(collection, findUsersDto.id);
+    }
+
+    let query: Query<DocumentData> = this.firestore.collection(collection);
+
+    Object.entries(findUsersDto).forEach(([key, value]) => {
+      query = query.where(key, '==', value);
+    });
+
+    const snapshot = await query.get();
+
+    const result: Array<User> = [];
+
+    snapshot.forEach((doc: QueryDocumentSnapshot) => {
+      const document: any = { id: doc.id, ...doc.data() };
+      result.push(document);
+    });
+
+    return result;
   }
 }

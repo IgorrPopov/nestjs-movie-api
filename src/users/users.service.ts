@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { collectionName } from './constants/user.const';
 
 @Injectable()
 export class UsersService {
@@ -13,30 +14,30 @@ export class UsersService {
   ) {}
 
   create(createUserDto: CreateUserDto): Promise<void> {
-    return this.firestoreClientService.create('users', createUserDto);
+    return this.firestoreClientService.create(collectionName, createUserDto);
   }
 
   batch(createUserDtos: CreateUserDto[]): Promise<void> {
-    return this.firestoreClientService.batch('users', createUserDtos);
+    return this.firestoreClientService.batch(collectionName, createUserDtos);
   }
 
   update(id: string, updateUserDto: UpdateUserDto): Promise<void> {
-    return this.firestoreClientService.update('users', id, updateUserDto);
+    return this.firestoreClientService.update(collectionName, id, updateUserDto);
   }
 
   findAll(paginationDto: PaginationDto): Promise<User[]> {
-    return this.firestoreClientService.findAll('users', paginationDto);
+    return this.firestoreClientService.findAll(collectionName, paginationDto);
   }
 
-  find(findUsersDto: FindUsersDto): Promise<any[]> {
-    return this.firestoreClientService.find('users', findUsersDto);
+  find(findUsersDto: FindUsersDto): Promise<User[]> {
+    return this.firestoreClientService.find(collectionName, findUsersDto);
   }
 
   findOne(id: string): Promise<User> {
-    return this.firestoreClientService.findOne('users', id);
+    return this.firestoreClientService.findOne(collectionName, id);
   }
 
   remove(id: string): Promise<void> {
-    return this.firestoreClientService.remove('users', id);
+    return this.firestoreClientService.remove(collectionName, id);
   }
 }

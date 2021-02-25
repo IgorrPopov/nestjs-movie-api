@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  ValidationPipe,
   Query
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -52,6 +51,11 @@ export class MoviesController {
     status: 400,
     description: `If the request body does not match UpdateMovieDto or it's empty 
     then the API will return 400 bad request`
+  })
+  @ApiResponse({
+    status: 404,
+    description:
+      'If you provide movie id that does not exist API will return 404 NotFoundException'
   })
   update(
     @Param('id') id: string,

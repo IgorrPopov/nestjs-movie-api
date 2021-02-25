@@ -10,6 +10,8 @@ const MIN_DIRECTOR_LENGTH = 2;
 const MAX_YEAR = new Date().getFullYear();
 const MIN_YEAR = 1888;
 
+const collectionName = 'movies';
+
 export {
   MAX_TITLE_LENGTH,
   MIN_TITLE_LENGTH,
@@ -18,5 +20,6 @@ export {
   MAX_DIRECTOR_LENGTH,
   MIN_DIRECTOR_LENGTH,
   MAX_YEAR,
-  MIN_YEAR
+  MIN_YEAR,
+  collectionName
 };

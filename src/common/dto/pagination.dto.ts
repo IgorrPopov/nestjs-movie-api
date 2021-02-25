@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsInt,
   IsNotEmpty,
   IsNumberString,
   IsOptional,
@@ -9,8 +10,7 @@ import {
 export class PaginationDto {
   @IsOptional()
   @IsNotEmpty()
-  @MaxLength(3)
-  @IsNumberString()
+  @IsInt()
   @ApiProperty({
     name: 'limit',
     required: false,
@@ -21,8 +21,7 @@ export class PaginationDto {
 
   @IsOptional()
   @IsNotEmpty()
-  @MaxLength(50)
-  @IsNumberString()
+  @IsInt()
   @ApiProperty({
     name: 'start',
     required: false,

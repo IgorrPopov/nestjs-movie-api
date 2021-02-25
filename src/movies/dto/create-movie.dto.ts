@@ -17,7 +17,7 @@ import {
   MIN_DIRECTOR_LENGTH,
   MAX_YEAR,
   MIN_YEAR
-} from '../ constants/movie.const';
+} from '../constants/movie.const';
 
 export class CreateMovieDto {
   @IsNotEmpty({ message: 'year should not be empty' })
