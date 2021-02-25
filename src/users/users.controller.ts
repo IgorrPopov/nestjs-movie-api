@@ -122,7 +122,7 @@ export class UsersController {
     description:
       'If user with provided id does not exist API will return 404 NotFoundException'
   })
-  findOne(@Param('id') id: string): Promise<User> {
+  findOne(@Param('id') id: string): Promise<User> {   
     return this.usersService.findOne(id);
   }
 

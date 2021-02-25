@@ -10,6 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as path from 'path';
+import { defaultLimit } from 'src/common/constants/common.const';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { FindUsersDto } from 'src/users/dto/find-users.dto';
@@ -43,8 +44,8 @@ export class FirestoreClientService {
     collection: string,
     id: string,
     updateDto: UpdateMovieDto | UpdateUserDto,
-  ): Promise<void> {
-    if (!updateDto || !Object.keys(updateDto)) {
+  ): Promise<void> {   
+    if (updateDto && !Object.keys(updateDto).length) {
       throw new BadRequestException('update request is empty');
     }
 
@@ -79,13 +80,17 @@ export class FirestoreClientService {
     collection: string,
     paginationDto: PaginationDto,
   ): Promise<any[]> {
-    const { start = 5, limit = 10 } = paginationDto;
+    let { start, limit = defaultLimit } = paginationDto; // don't know how to do skip right now
+
+    if (limit > defaultLimit) {
+      limit = defaultLimit;
+    }
 
     const snapshot = await this.firestore
       .collection(collection)
       // .orderBy('year')
       // .startAt(1980)
-      // .limit(limit)
+      .limit(limit)
       .get();
 
     const result: Array<Movie | User> = [];
@@ -130,7 +135,7 @@ export class FirestoreClientService {
 
     const snapshot = await query.get();
 
-    const result: Array<User> = [];
+    const result: User[] = [];
 
     snapshot.forEach((doc: QueryDocumentSnapshot) => {
       const document: any = { id: doc.id, ...doc.data() };

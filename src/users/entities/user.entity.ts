@@ -13,7 +13,7 @@ export class User {
   @ApiProperty({ example: 'user' })
   readonly status: string;
 
-  @ApiProperty({ example: 'mail' })
+  @ApiProperty({ example: 'male' })
   readonly gender: string;
 }
 

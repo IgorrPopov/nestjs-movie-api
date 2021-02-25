@@ -5,7 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { collectionName } from './constants/user.const';
+import { collectionName, defaultUserStatus } from './constants/user.const';
 
 @Injectable()
 export class UsersService {
@@ -14,11 +14,24 @@ export class UsersService {
   ) {}
 
   create(createUserDto: CreateUserDto): Promise<void> {
+
+    if (!createUserDto.status) {
+      createUserDto.status = defaultUserStatus;
+    }
+
     return this.firestoreClientService.create(collectionName, createUserDto);
   }
 
   batch(createUserDtos: CreateUserDto[]): Promise<void> {
-    return this.firestoreClientService.batch(collectionName, createUserDtos);
+    return this.firestoreClientService.batch(
+      collectionName, 
+      createUserDtos.map(createUserDto => {
+        if (!createUserDto.status) {
+          createUserDto.status = defaultUserStatus;
+        }
+        return createUserDto;
+      })
+    );
   }
 
   update(id: string, updateUserDto: UpdateUserDto): Promise<void> {
